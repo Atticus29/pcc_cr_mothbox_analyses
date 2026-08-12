@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import argparse
+import re
+import shutil
+import subprocess
+from pathlib import Path
+
+
+IMG_DIR = Path("/Users/markfisher/Sites/flat-bug/img_dir")
+OUTPUT_DIR = Path("/Users/markfisher/Sites/flat-bug/output_dir")
+WEIGHTS = Path("/Users/markfisher/Sites/flat-bug/examples/tutorials/flat_bug_M.pt")
+
+
+def run_predict() -> int:
+	cmd = [
+		"fb_predict",
+		"-i",
+		str(IMG_DIR),
+		"-o",
+		str(OUTPUT_DIR),
+		"-w",
+		str(WEIGHTS),
+		"-g",
+		"cpu",
+		"--single-scale",
+		"--fast",
+		"-s",
+		"0.5",
+		"-v",
+	]
+	result = subprocess.run(cmd, check=False)
+	return result.returncode
+
+
+def main() -> None:
+	parser = argparse.ArgumentParser(
+		description=(
+			"Move files matching a regex from a source directory into the FlatBug image "
+			"directory, then run fb_predict after each move."
+		)
+	)
+	parser.add_argument("path", help="Source directory to scan")
+	parser.add_argument(
+		"target_regex",
+		help="Regular expression used to match file names in the source directory",
+	)
+	args = parser.parse_args()
+
+	source_dir = Path(args.path).expanduser().resolve()
+
+	if not source_dir.is_dir():
+		raise SystemExit(f"Source path is not a directory: {source_dir}")
+
+	IMG_DIR.mkdir(parents=True, exist_ok=True)
+	OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+	pattern = re.compile(args.target_regex)
+
+	matches = [
+		p
+		for p in sorted(source_dir.iterdir())
+		if p.is_file() and pattern.search(p.name)
+	]
+
+	print(f"Found {len(matches)} matching files in {source_dir}")
+
+	for src_file in matches:
+		dest_file = IMG_DIR / src_file.name
+
+		# Avoid silent overwrites by making destination names unique.
+		if dest_file.exists():
+			stem = dest_file.stem
+			suffix = dest_file.suffix
+			counter = 1
+			while True:
+				candidate = IMG_DIR / f"{stem}_{counter}{suffix}"
+				if not candidate.exists():
+					dest_file = candidate
+					break
+				counter += 1
+
+		print(f"Moving: {src_file} -> {dest_file}")
+		shutil.move(str(src_file), str(dest_file))
+
+		print("Running: fb_predict ...")
+		return_code = run_predict()
+		if return_code != 0:
+			print(f"fb_predict failed with exit code {return_code} after file {dest_file}")
+		else:
+			print(f"fb_predict succeeded after file {dest_file}")
+
+
+if __name__ == "__main__":
+	main()
