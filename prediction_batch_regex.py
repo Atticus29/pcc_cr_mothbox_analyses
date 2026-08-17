@@ -5,13 +5,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
+# Example usage: python3 prediction_batch_regex.py -- "/Users/markfisher/Downloads/wearySponge_2026-08-15/" "-" "/Users/markfisher/Sites/flat-bug/output_dir"
+
 
 IMG_DIR = Path("/Users/markfisher/Sites/flat-bug/img_dir")
-# WEIGHTS = Path("/Users/markfisher/Sites/flat-bug/examples/tutorials/flat_bug_M.pt")
-WEIGHTS = Path("/Users/markfisher/Sites/flat-bug/examples/tutorials/flat_bug_N.pt")
+WEIGHTS_M = Path("/Users/markfisher/Sites/flat-bug/examples/tutorials/flat_bug_M.pt")
+WEIGHTS_N = Path("/Users/markfisher/Sites/flat-bug/examples/tutorials/flat_bug_N.pt")
 
 
-def run_predict(output_dir: Path) -> int:
+def run_predict(output_dir: Path, model: str) -> int:
 	cmd = [
 		"fb_predict",
 		"-i",
@@ -19,7 +21,7 @@ def run_predict(output_dir: Path) -> int:
 		"-o",
 		str(output_dir),
 		"-w",
-		str(WEIGHTS),
+		str(WEIGHTS_M if model == "M" else WEIGHTS_N),
 		"-g",
 		"cpu",
 		"--single-scale",
@@ -48,10 +50,15 @@ def main() -> None:
 		"output_dir",
 		help="FlatBug output directory where per-image result folders are written",
 	)
+	parser.add_argument(
+		"model",
+		help="N for nano and M for medium. This selects the model weights to use for prediction.",
+	)
 	args = parser.parse_args()
 
 	source_dir = Path(args.path).expanduser().resolve()
 	output_dir = Path(args.output_dir).expanduser().resolve()
+	model = args.model.upper()
 
 	if not source_dir.is_dir():
 		raise SystemExit(f"Source path is not a directory: {source_dir}")
@@ -93,7 +100,7 @@ def main() -> None:
 		shutil.move(str(src_file), str(dest_file))
 
 		print("Running: fb_predict ...")
-		return_code = run_predict(output_dir)
+		return_code = run_predict(output_dir, model)
 		if return_code != 0:
 			print(f"fb_predict failed with exit code {return_code} after file {dest_file}")
 		else:
