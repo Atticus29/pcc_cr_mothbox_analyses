@@ -5,7 +5,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
-# Example usage: python3 prediction_batch_regex.py -- "/Users/markfisher/Downloads/wearySponge_2026-08-15/" "-" "/Users/markfisher/Sites/flat-bug/output_dir"
+# Example usage: python3 prediction_batch_regex.py -- "/Users/markfisher/Downloads/wearySponge_2026-08-16/" "T03" "/Users/markfisher/Sites/flat-bug/output_dir" "M"
+
+
 
 
 IMG_DIR = Path("/Users/markfisher/Sites/flat-bug/img_dir")
@@ -32,6 +34,17 @@ def run_predict(output_dir: Path, model: str) -> int:
 	]
 	result = subprocess.run(cmd, check=False)
 	return result.returncode
+
+
+def remove_temporary_files(output_dir: Path) -> None:
+	temporary_marker = "_CROPNUMBER_3_UUID_ChangeThisTEMPORARY"
+	removed_count = 0
+	for path in output_dir.rglob("*"):
+		if path.is_file() and temporary_marker in path.stem and path.stem.endswith(temporary_marker):
+			path.unlink()
+			removed_count += 1
+	if removed_count:
+		print(f"Removed {removed_count} temporary file(s) from {output_dir}")
 
 
 def main() -> None:
@@ -105,6 +118,8 @@ def main() -> None:
 			print(f"fb_predict failed with exit code {return_code} after file {dest_file}")
 		else:
 			print(f"fb_predict succeeded after file {dest_file}")
+
+	remove_temporary_files(output_dir)
 
 
 if __name__ == "__main__":
