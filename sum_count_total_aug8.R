@@ -16,14 +16,24 @@ get_all_date_matches <- function(date) {
 	]
 }
 
+# Drops rows where CountTotal or CountMoths fails to coerce to numeric, so neither sum includes a partial row.
+valid_count_rows <- function(matches) {
+	count_total <- suppressWarnings(as.numeric(matches$CountTotal))
+	count_moths <- suppressWarnings(as.numeric(matches$CountMoths))
+	keep <- !is.na(count_total) & !is.na(count_moths)
+	data.frame(CountTotal = count_total[keep], CountMoths = count_moths[keep])
+}
+
 calculate_total <- function(date) {
     early_late_matches <- get_early_late_date_matches(date)
-    totalInsect <- sum(as.numeric(early_late_matches$CountTotal), na.rm = TRUE)
-    totalMoth <- sum(as.numeric(early_late_matches$CountMoths), na.rm = TRUE)
+    early_late_counts <- valid_count_rows(early_late_matches)
+    totalInsect <- sum(early_late_counts$CountTotal)
+    totalMoth <- sum(early_late_counts$CountMoths)
 
     all_matches <- get_all_date_matches(date)
-    totalInsectAll <- sum(as.numeric(all_matches$CountTotal), na.rm = TRUE)
-    totalMothAll <- sum(as.numeric(all_matches$CountMoths), na.rm = TRUE)
+    all_counts <- valid_count_rows(all_matches)
+    totalInsectAll <- sum(all_counts$CountTotal)
+    totalMothAll <- sum(all_counts$CountMoths)
     print(paste("Total Insect Count for", date, ":", totalInsect))
     print(paste("Total Moth Count for", date, ":", totalMoth))
     print(paste("Total Insect Count (All Times) for", date, ":", totalInsectAll))
