@@ -2,7 +2,7 @@
 import argparse
 import csv
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
@@ -52,13 +52,8 @@ def make_csv_row(result_folder: Path) -> Optional[List[str]]:
 	time = match.group(2)
 	original_date_str = match.group(1)
 	date_obj = datetime.strptime(original_date_str, "%Y-%m-%d")
-	# Past-midnight captures (00-04h) are logged under the prior night's date; roll them forward.
-	if time[:2] in ("00", "01", "02", "03", "04"):
-		date_obj += timedelta(days=1)
 	date = date_obj.strftime("%m/%d/%Y")
-	filename = result_folder.name.replace(
-		original_date_str, date_obj.strftime("%Y-%m-%d"), 1
-	)
+	filename = result_folder.name
 	crops_dir = result_folder / "crops"
 	count_total = (
 		sum(1 for path in crops_dir.iterdir() if path.is_file())
