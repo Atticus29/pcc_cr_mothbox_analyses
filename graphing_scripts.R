@@ -1,7 +1,8 @@
 library(dplyr)
 library(ggplot2)
 
-csv_path <- "/Users/markfisher/Downloads/2026 Taxonomic Composition - CanUseSingleMinute_.csv"
+# csv_path <- "/Users/markfisher/Downloads/2026 Taxonomic Composition - CanUseSingleMinute_.csv"
+csv_path <- "/Users/markfisher/Sites/pcc_cr_mothbox_analyses/2026TaxonomicCompositionDataProcessing_aug_21_snapshot.csv"
 data <- read.csv(csv_path, stringsAsFactors = FALSE)
 
 # Extract the hour prefix (e.g. "21" from "21-01-23") to bucket entries
