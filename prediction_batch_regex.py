@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-# Example usage: python3 prediction_batch_regex.py -- "/Users/markfisher/Downloads/wearySponge_2026-08-16/" "T03" "/Users/markfisher/Sites/flat-bug/output_dir" "M"
+# Example usage: python3 prediction_batch_regex.py -- "/Users/markfisher/Downloads/wearySponge_2026-08-16/" "T03" "/Users/markfisher/Sites/flat-bug/output_dir" "N"
 
 
 
